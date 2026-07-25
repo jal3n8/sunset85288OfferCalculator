@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Acquisition" />
+<meta name="theme-color" content="#0B0F15" />
+<title>Acquisition Engine · Tempe 85288</title>
+<style>
+  :root{
+    --bg:#0B0F15; --panel:#131A23; --panel2:#1A222D; --line:#232D3A;
+    --text:#E8EFF7; --mut:#7E8C9D; --faint:#4B5768;
+    --go:#37C46A; --warn:#F0B429; --bad:#F0564A; --blue:#5CA8FF;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);}
+  body{font-family:'Space Grotesk',ui-sans-serif,system-ui,-apple-system,sans-serif;
+    color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:40px;min-height:100vh;}
+  .mono{font-family:'JetBrains Mono',ui-monospace,'SF Mono',monospace;font-variant-numeric:tabular-nums}
+  .wrap{max-width:720px;margin:0 auto;padding:18px 16px 0}
+  .flex{display:flex}.between{justify-content:space-between}.aic{align-items:center}.aib{align-items:baseline}
+
+  .sticky{position:sticky;top:0;z-index:20;background:rgba(11,15,21,.94);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);padding:14px 16px 13px}
+  .sticky .inner{max-width:720px;margin:0 auto}
+  .eyebrow{font-size:10.5px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.11em}
+  .mao{font-size:33px;font-weight:700;letter-spacing:-.02em;margin-top:3px;line-height:1.05;color:var(--go)}
+
+  .meter{position:relative;height:7px;border-radius:4px;margin-top:9px;
+    background:linear-gradient(90deg,var(--go) 0%,var(--go) 42%,var(--warn) 58%,var(--bad) 74%,var(--bad) 100%)}
+  .needle{position:absolute;top:-4.5px;transform:translateX(-50%);width:3px;height:16px;
+    background:var(--text);border-radius:2px;box-shadow:0 0 0 2px rgba(11,15,21,.95)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px;margin-bottom:14px}
+  .bar{background:var(--panel2);border-radius:10px;padding:12px 13px;border:1px solid var(--line);margin-top:9px}
+  .barval{font-size:19px;font-weight:700}
+
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:34px;background:transparent;cursor:pointer;margin-top:6px}
+  input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:var(--panel2);border:1px solid var(--line)}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;border-radius:50%;
+    background:var(--text);border:3px solid var(--blue);margin-top:-12px;box-shadow:0 2px 10px rgba(0,0,0,.55)}
+  input[type=range]::-moz-range-track{height:8px;border-radius:4px;background:var(--panel2);border:1px solid var(--line)}
+  input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--text);border:3px solid var(--blue)}
+
+  .num{background:#0D131A;border:1px solid var(--line);border-radius:9px;color:var(--text);
+    padding:12px 13px;font-size:17px;width:100%;outline:none}
+  .num:focus{border-color:var(--blue)}
+
+  .preset,.seg{cursor:pointer;font-family:inherit;border-radius:9px;border:1px solid var(--line);
+    background:#0D131A;color:var(--mut);text-align:left}
+  .preset{flex:1 1 90px;padding:10px 11px;min-height:52px}
+  .preset.on,.seg.on{border-color:var(--blue);background:rgba(92,168,255,.13);color:var(--text)}
+  .seg{flex:1;min-height:46px;padding:11px 10px;font-size:13px;font-weight:500;text-align:center}
+  .presetTitle{font-size:13px;font-weight:600}
+  .presetHint{font-size:10px;color:var(--faint);margin-top:2px}
+
+  .row{display:flex;justify-content:space-between}
+  .linkbtn{background:none;border:none;padding:0;cursor:pointer;font-family:inherit;color:var(--text);width:100%;text-align:left;min-height:30px}
+  .foot{font-size:10.5px;color:var(--faint);line-height:1.75;padding:4px 2px 0}
+</style>
+</head>
+<body>
+
+<div class="sticky">
+  <div class="inner">
+    <div class="eyebrow">Max offer — walk away above this</div>
+    <div class="mao mono" id="mao">$—</div>
+    <div class="flex between aib" style="margin-top:5px;gap:10px">
+      <span class="mono" id="maoRange" style="font-size:12px;color:var(--mut)"></span>
+      <span class="mono" id="pctArv" style="font-size:12.5px;font-weight:700"></span>
+    </div>
+    <div class="meter"><div class="needle" id="needle"></div></div>
+    <div class="mono" id="zone" style="font-size:10.5px;margin-top:5px"></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="card">
+    <div class="flex between aib">
+      <div class="eyebrow">Repairs — dial as you walk</div>
+      <span class="mono" id="repDollars" style="font-size:15px;font-weight:700"></span>
+    </div>
+    <input type="range" id="repair" min="35" max="110" step="1" value="72" aria-label="Repair cost per square foot" />
+    <div class="flex between mono" style="font-size:11.5px;color:var(--faint)">
+      <span>$35/sf</span>
+      <span id="repPsf" style="color:var(--text);font-weight:700;font-size:13px"></span>
+      <span>$110/sf</span>
+    </div>
+    <div class="flex" style="gap:7px;margin-top:12px;flex-wrap:wrap" id="presets"></div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">What it's worth</div>
+    <div id="valBars" style="margin-top:11px"></div>
+    <div style="margin-top:11px;padding:11px 12px;border-radius:9px;background:rgba(240,180,41,.07);border:1px solid rgba(240,180,41,.22)">
+      <div class="mono" style="font-size:11px;color:var(--warn);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Market is off peak</div>
+      <div class="mono" id="peakNote" style="font-size:12px;color:var(--mut);margin-top:4px;line-height:1.6"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Their ask</div>
+    <input class="num mono" type="number" inputmode="numeric" id="list" value="509000" aria-label="List price" style="margin-top:10px" />
+    <div id="askVerdict"></div>
+  </div>
+
+  <div class="card">
+    <button class="linkbtn" id="toggleDials">
+      <div class="flex between aic"><span class="eyebrow">Deal dials</span><span id="dialsLabel" style="color:var(--mut);font-size:13px">hide</span></div>
+    </button>
+    <div id="dials" style="margin-top:14px;display:grid;gap:20px"></div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">How the number is built</div>
+    <div class="mono" id="stack" style="font-size:13px;margin-top:10px;line-height:2.05"></div>
+  </div>
+
+  <div class="mono foot">
+    v2.1 field mode · Tempe 85288 Sunset/Cavalier farm · 4 flips, 10 reno legs, 9 as-is legs (2023–2026).
+    No 70% rule — it lost money 3× here. Validated against 1667 N Circle: bought 56% of ARV, netted ~$80K.
+    2022 peak sales deliberately excluded from the model; shown only as a ceiling marker.
+    Watch the meter — nudging repairs down to make a deal work is how the losers talked themselves into it.
+  </div>
+</div>
+
+<script>
+// ── Calibrated constants (Tempe 85288 farm) ──
+var RENO = function(sf){return -0.058*sf + 472.1;};   // sd 27
+var ASIS = function(sf){return -0.0625*sf + 355.1;};  // sd 11
+var RENO_SD = 27, ASIS_SD = 11, PEAK_PSF = 375;       // 1656 N Circle 07/2022
+
+var PRESETS = [
+  {psf:50,label:"Cosmetic",hint:"paint · floor · fixtures"},
+  {psf:60,label:"Moderate",hint:"kitchen + baths"},
+  {psf:72,label:"Gut",hint:"not livable"}
+];
+
+// ── State ──
+var S = { sqft:1796, repairPsf:72, fee:6500, profitPct:12, hold:270, mainRoad:false, list:509000, openDials:true };
+
+// ── Helpers ──
+function money(n){return "$"+Math.round(n).toLocaleString();}
+function k1(n){return "$"+Math.round(n/1000).toLocaleString()+"K";}
+function el(id){return document.getElementById(id);}
+
+// ── Dials config ──
+var DIALS = [
+  {key:"sqft",   label:"Square footage",       min:900, max:2600, step:1,
+     disp:function(){return S.sqft.toLocaleString()+" sf";},
+     note:function(){return "ARV psf auto-scales · $"+RENO(S.sqft).toFixed(0)+"/sf";}},
+  {key:"fee",    label:"Your fee",             min:0,   max:30000, step:500,
+     disp:function(){return money(S.fee);}, note:function(){return "lower fee = higher offer you can make";}},
+  {key:"profitPct",label:"Buyer profit required",min:5, max:25,  step:1,
+     disp:function(){return S.profitPct+"% of ARV";}, note:function(){return "12% is the farm default";}},
+  {key:"hold",   label:"Hold time",            min:90,  max:600,  step:15,
+     disp:function(){return S.hold+" days";}, note:function(){return "carry ≈ "+money(calc().carry);}}
+];
+
+// ── The engine ──
+function calc(){
+  var sf = Number(S.sqft)||0;
+  var locF = S.mainRoad ? 0.93 : 1.0;
+  var arvMed=RENO(sf)*sf*locF, arvLow=(RENO(sf)-RENO_SD)*sf*locF, arvHigh=(RENO(sf)+RENO_SD)*sf*locF;
+  var asMed=ASIS(sf)*sf*locF, asLow=(ASIS(sf)-ASIS_SD)*sf*locF, asHigh=(ASIS(sf)+ASIS_SD)*sf*locF;
+  var repairs=S.repairPsf*sf;
+  var carry=S.hold*40 + arvMed*0.6*0.10*(S.hold/365);
+  function stack(arv){
+    var sell=arv*0.07, profit=arv*(S.profitPct/100);
+    var inv=arv-sell-repairs-carry-profit;
+    return {sell:sell,profit:profit,inv:inv,mao:inv-S.fee};
+  }
+  var lo=stack(arvLow), md=stack(arvMed), hi=stack(arvHigh);
+  return {sf:sf,repairs:repairs,carry:carry,peakArv:PEAK_PSF*sf*locF,
+    arvLow:arvLow,arvMed:arvMed,arvHigh:arvHigh,asLow:asLow,asMed:asMed,asHigh:asHigh,
+    invMed:md.inv,sell:md.sell,profit:md.profit,
+    maoLow:lo.mao,maoMed:md.mao,maoHigh:hi.mao,pct:md.mao/arvMed};
+}
+
+// ── Render ──
+function render(){
+  var r=calc();
+  var pct=r.pct*100;
+  var zone = pct<=58 ? {c:'var(--go)',t:'Disciplined — winners bought here'}
+    : pct<=62 ? {c:'var(--warn)',t:'Edge of the range — tread carefully'}
+    : {c:'var(--bad)',t:'Overpaying — this is where flips died here'};
+
+  el('mao').textContent = money(r.maoMed);
+  el('maoRange').textContent = "safe "+k1(r.maoLow)+" → stretch "+k1(r.maoHigh);
+  var p=el('pctArv'); p.textContent = pct.toFixed(0)+"% of ARV"; p.style.color=zone.c;
+  var pos=Math.max(0,Math.min(1,(r.pct-0.4)/0.4))*100;
+  el('needle').style.left=pos+"%";
+  var z=el('zone'); z.textContent=zone.t; z.style.color=zone.c;
+
+  el('repDollars').textContent=money(r.repairs);
+  el('repPsf').textContent="$"+S.repairPsf+"/sf";
+
+  // value bars
+  function bar(label,md,lo,hi,color,single,flag){
+    var sub = single ? "" : '<div class="mono" style="font-size:11px;color:var(--faint);margin-top:3px">'+k1(lo)+' – '+k1(hi)+'</div>';
+    var fl = flag ? '<div style="font-size:10px;color:var(--warn);margin-top:1px">'+flag+'</div>' : '';
+    return '<div class="bar"><div class="flex between aib"><div><div style="font-size:12px;color:var(--mut)">'+label+'</div>'+fl+
+      '</div><div class="barval mono" style="color:'+color+'">'+k1(md)+'</div></div>'+sub+'</div>';
+  }
+  el('valBars').innerHTML =
+    bar('ARV · renovated',r.arvMed,r.arvLow,r.arvHigh,'var(--blue)',false,'') +
+    bar('As-is market',r.asMed,r.asLow,r.asHigh,'var(--warn)',false,"reference only — don't pay this") +
+    bar('Investor max buy',r.invMed,0,0,'var(--text)',true,'');
+
+  var offPeak=(r.arvMed/r.peakArv-1)*100;
+  el('peakNote').innerHTML = "2022 peak would price this at "+k1(r.peakArv)+" ("+offPeak.toFixed(0)+
+    "% vs today). 1656 N Circle · 2,012sf · $375/sf · 07/2022 vs 1515 N Saguaro · 2,014sf · $310/sf · 04/2026. Never underwrite to 2022 comps.";
+
+  // ask verdict
+  var listNum=Number(S.list)||0, gap=listNum-r.maoMed, av=el('askVerdict');
+  if(listNum>0){
+    var good=gap<=0;
+    av.innerHTML='<div style="margin-top:11px;padding:12px 13px;border-radius:9px;background:'+
+      (good?'rgba(55,196,106,.10)':'rgba(240,86,74,.09)')+';border:1px solid '+
+      (good?'rgba(55,196,106,.30)':'rgba(240,86,74,.26)')+'">'+
+      '<div class="mono" style="font-size:15px;font-weight:700;color:'+(good?'var(--go)':'var(--bad)')+'">'+
+      (good?money(-gap)+' under your max':money(gap)+' over your max')+'</div>'+
+      '<div style="font-size:12px;color:var(--mut);margin-top:3px">'+
+      (good?'In range. Verify condition, then move.':'You\'d need them to come down to '+money(r.maoMed)+'.')+'</div></div>';
+  } else av.innerHTML='';
+
+  // stack
+  function sr(k,v,dim,strong){
+    var col=dim?'var(--mut)':(strong?'var(--go)':'var(--text)');var w=strong?700:(dim?400:500);
+    return '<div class="row"><span style="color:'+col+';font-weight:'+(strong?700:400)+'">'+k+'</span>'+
+      '<span style="color:'+col+';font-weight:'+w+'">'+v+'</span></div>';
+  }
+  el('stack').innerHTML =
+    sr('ARV (renovated exit)',money(r.arvMed)) +
+    sr('− selling costs 7%','−'+money(r.sell),true) +
+    sr('− repairs','−'+money(r.repairs),true) +
+    sr('− carry','−'+money(r.carry),true) +
+    sr('− buyer profit '+S.profitPct+'%','−'+money(r.profit),true) +
+    '<div style="border-top:1px solid var(--line);margin:7px 0"></div>' +
+    sr('= investor max buy',money(r.invMed)) +
+    sr('− your fee','−'+money(S.fee),true) +
+    sr('= your max offer',money(r.maoMed),false,true);
+
+  // dial value labels + notes
+  DIALS.forEach(function(d){
+    var v=el('dialVal_'+d.key); if(v)v.textContent=d.disp();
+    var n=el('dialNote_'+d.key); if(n)n.textContent=d.note();
+  });
+  el('repair').value=S.repairPsf;
+  document.querySelectorAll('.preset').forEach(function(b){
+    b.classList.toggle('on', Number(b.getAttribute('data-psf'))===S.repairPsf);
+  });
+  document.querySelectorAll('.seg').forEach(function(b){
+    b.classList.toggle('on', (b.getAttribute('data-road')==='true')===S.mainRoad);
+  });
+}
+
+// ── Build static bits once ──
+(function build(){
+  // presets
+  var ph=PRESETS.map(function(p){
+    return '<button class="preset" data-psf="'+p.psf+'"><div class="presetTitle">'+p.label+
+      '</div><div class="presetHint mono">'+p.hint+'</div></button>';
+  }).join('');
+  el('presets').innerHTML=ph;
+  document.querySelectorAll('.preset').forEach(function(b){
+    b.addEventListener('click',function(){S.repairPsf=Number(b.getAttribute('data-psf'));render();});
+  });
+
+  // dials
+  var dh=DIALS.map(function(d){
+    return '<div><div class="flex between aib"><span style="font-size:12.5px;color:var(--mut)">'+d.label+
+      '</span><span class="mono" id="dialVal_'+d.key+'" style="font-size:15px;font-weight:700"></span></div>'+
+      '<input type="range" id="dial_'+d.key+'" min="'+d.min+'" max="'+d.max+'" step="'+d.step+'" aria-label="'+d.label+'" />'+
+      '<div class="mono" id="dialNote_'+d.key+'" style="font-size:10.5px;color:var(--faint);margin-top:-2px"></div></div>';
+  }).join('');
+  // location seg
+  dh += '<div><div style="font-size:12.5px;color:var(--mut);margin-bottom:8px">Location</div>'+
+    '<div class="flex" style="gap:8px">'+
+    '<button class="seg" data-road="false">Interior street</button>'+
+    '<button class="seg" data-road="true">Main road −7%</button></div></div>';
+  el('dials').innerHTML=dh;
+
+  DIALS.forEach(function(d){
+    var input=el('dial_'+d.key); input.value=S[d.key];
+    input.addEventListener('input',function(){S[d.key]=Number(input.value);render();});
+  });
+  document.querySelectorAll('.seg').forEach(function(b){
+    b.addEventListener('click',function(){S.mainRoad=(b.getAttribute('data-road')==='true');render();});
+  });
+
+  el('repair').addEventListener('input',function(){S.repairPsf=Number(el('repair').value);render();});
+  el('list').addEventListener('input',function(){S.list=el('list').value;render();});
+  el('toggleDials').addEventListener('click',function(){
+    S.openDials=!S.openDials;
+    el('dials').style.display=S.openDials?'grid':'none';
+    el('dialsLabel').textContent=S.openDials?'hide':'show';
+  });
+
+  render();
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</body>
+</html>
